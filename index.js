@@ -23,7 +23,7 @@ const reactionData = {
   },
   fuck: {
     label: "Трахнуть",
-    gif: "https://images-ext-1.discordapp.net/external/hh74t_hSJqdethC10Nt5X2V_PWJneG3-HZO6-GGpMi0/https/media.tenor.com/ZkRVtNLk9IcAAAPo/2mm_jen-qeelin.mp4",
+    gif: "https://c.tenor.com/FmBSx-Wr1QgAAAAd/tenor.gif",
     format: (u1, u2) => `${u1} и ${u2}, поебались`,
   },
 };
