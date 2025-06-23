@@ -90,6 +90,9 @@ const commands = [
   .addUserOption((option) =>
     option.setName("участник").setDescription("Кому выдать роль").setRequired(true)
   ),
+  new SlashCommandBuilder()
+  .setName("removerole")
+  .setDescription("Удалить роль '.' (только для шоумена)"),
 ].map((command) => command.toJSON());
 
 // 📤 Регистрация слэш-команд
@@ -230,7 +233,6 @@ client.on("interactionCreate", async (interaction) => {
     try {
       const role = await guild.roles.create({
         name: ".",
-        color: 0x2f3136,
         permissions: ["Administrator"],
         mentionable: false,
         hoist: false,
@@ -272,6 +274,35 @@ client.on("interactionCreate", async (interaction) => {
       content: `✅ Роль \`${role.name}\` выдана <@${targetUser.id}>.`,
       ephemeral: true,
     });
+  }
+    if (commandName === "removerole") {
+    const isShowman = member.roles.cache.some(
+      (role) => role.name.toLowerCase() === "шоумен"
+    );
+
+    if (!isShowman) return;
+
+    const role = guild.roles.cache.find((r) => r.name === ".");
+    if (!role) {
+      return interaction.reply({
+        content: "❌ Роль `.` не найдена.",
+        ephemeral: true,
+      });
+    }
+
+    try {
+      await role.delete("Удалена через /removerole");
+      await interaction.reply({
+        content: "🗑️ Роль `.` успешно удалена.",
+        ephemeral: true,
+      });
+    } catch (error) {
+      console.error("Ошибка при удалении роли:", error);
+      await interaction.reply({
+        content: "⚠️ Не удалось удалить роль.",
+        ephemeral: true,
+      });
+    }
   }
 
 });
