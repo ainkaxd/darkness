@@ -5,7 +5,7 @@ const path = require('path');
 
 const { CLIENT_ID, GUILD_ID, TOKEN } = process.env;
 
-// 📥 Рекурсивно получаем все команды
+// 🔁 Рекурсивный обход команд
 function getAllCommandFiles(dirPath, arrayOfFiles = []) {
   const files = fs.readdirSync(dirPath);
   for (const file of files) {

@@ -1,6 +1,4 @@
-// 📁 commands/uhclist.js
 const { SlashCommandBuilder } = require('discord.js');
-const { updateTeamListMessage } = require('../pako-uhc/ui');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -8,7 +6,8 @@ module.exports = {
     .setDescription('для uhc'),
 
   async execute(interaction) {
-    // Только ты или админ
+    const { updateTeamListMessage } = require('../pako-uhc/ui'); // ⬅️ импорт ВНУТРИ функции
+
     if (interaction.user.id !== '868771678400966667') {
       return interaction.reply({ content: '❌ иди нахуй', ephemeral: true });
     }
