@@ -46,8 +46,11 @@ module.exports = {
         const teams = readTeams();
         delete teams[userId];
         saveTeams(teams);
+
         await interaction.reply({ content: '❌ Вы вышли из турнира.', ephemeral: true });
-        await updateTeamListMessage(interaction.message.channel);
+
+        const targetChannel = await interaction.guild.channels.fetch('1388148020008189952');
+        await updateTeamListMessage(targetChannel);
       }
     }
 
@@ -70,7 +73,8 @@ module.exports = {
         ephemeral: true
       });
 
-      await updateTeamListMessage(interaction.channel);
+      const targetChannel = await interaction.guild.channels.fetch('1388148020008189952');
+      await updateTeamListMessage(targetChannel);
     }
   }
 };
