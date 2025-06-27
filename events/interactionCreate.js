@@ -1,5 +1,5 @@
 const { readTeams, saveTeams } = require('../pako-uhc/uhcStorage');
-const { createUHCRegistrationMessage } = require('../pako-uhc/ui');
+const { updateTeamListMessage } = require('../pako-uhc/ui');
 
 module.exports = {
   name: 'interactionCreate',
@@ -47,7 +47,7 @@ module.exports = {
         delete teams[userId];
         saveTeams(teams);
         await interaction.reply({ content: '❌ Вы вышли из турнира.', ephemeral: true });
-        await createUHCRegistrationMessage(interaction.message.channel);
+        await updateTeamListMessage(interaction.message.channel);
       }
     }
 
@@ -70,7 +70,7 @@ module.exports = {
         ephemeral: true
       });
 
-      await createUHCRegistrationMessage(interaction.channel);
+      await updateTeamListMessage(interaction.channel);
     }
   }
 };
