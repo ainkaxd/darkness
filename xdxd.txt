@@ -1,0 +1,4 @@
+для обновлений 
+ git add .
+ git commit -m ""
+ git push
