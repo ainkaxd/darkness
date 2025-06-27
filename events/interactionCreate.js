@@ -1,3 +1,10 @@
+const {
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+  InteractionType,
+} = require('discord.js');
 const { readTeams, saveTeams } = require('../pako-uhc/uhcStorage');
 const { updateTeamListMessage } = require('../pako-uhc/ui');
 
@@ -13,33 +20,30 @@ module.exports = {
       const userId = interaction.user.id;
 
       if (interaction.customId === 'uhc_register' || interaction.customId === 'uhc_edit') {
-        const modal = {
-          title: interaction.customId === 'uhc_edit' ? 'Изменение состава' : 'Регистрация команды',
-          custom_id: 'uhc_register_modal',
-          components: [
-            {
-              type: 1,
-              components: [{
-                type: 4,
-                custom_id: 'teammate',
-                label: 'Тиммейт (@user)',
-                style: 1,
-                required: true
-              }]
-            },
-            {
-              type: 1,
-              components: [{
-                type: 4,
-                custom_id: 'team_name',
-                label: 'Название команды',
-                style: 1,
-                required: true
-              }]
-            }
-          ]
-        };
-        return interaction.showModal(modal);
+        const modal = new ModalBuilder()
+          .setCustomId('uhc_register_modal')
+          .setTitle(interaction.customId === 'uhc_edit' ? 'Изменение состава' : 'Регистрация команды');
+
+        const teammateInput = new TextInputBuilder()
+          .setCustomId('teammate')
+          .setLabel('Тиммейт (ID, не ник, пример: 8687...)')
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setMaxLength(45);
+
+        const teamNameInput = new TextInputBuilder()
+          .setCustomId('team_name')
+          .setLabel('Название команды')
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setMaxLength(45);
+
+        modal.addComponents(
+          new ActionRowBuilder().addComponents(teammateInput),
+          new ActionRowBuilder().addComponents(teamNameInput)
+        );
+
+        return await interaction.showModal(modal);
       }
 
       if (interaction.customId === 'uhc_cancel') {
@@ -47,30 +51,45 @@ module.exports = {
         delete teams[userId];
         saveTeams(teams);
 
-        await interaction.reply({ content: '❌ Вы вышли из турнира.', ephemeral: true });
+        await interaction.reply({
+          content: '❌ Вы вышли из турнира.',
+          flags: 64 // same as ephemeral: true
+        });
 
         const targetChannel = await interaction.guild.channels.fetch('1388148020008189952');
         await updateTeamListMessage(targetChannel);
       }
     }
 
-    if (interaction.isModalSubmit() && interaction.customId === 'uhc_register_modal') {
+    if (interaction.type === InteractionType.ModalSubmit && interaction.customId === 'uhc_register_modal') {
       const teamName = interaction.fields.getTextInputValue('team_name');
-      const teammate = interaction.fields.getTextInputValue('teammate');
-      const teammateId = teammate.replace(/[<@!>]/g, '');
+      const teammateInput = interaction.fields.getTextInputValue('teammate').replace(/[<@!>]/g, '');
       const userId = interaction.user.id;
+
+      // Проверка teammateId на валидность (17-20 цифр)
+      const isValidId = /^\d{17,20}$/.test(teammateInput);
+      const teammateId = isValidId ? teammateInput : null;
 
       const teams = readTeams();
       teams[userId] = {
         name: teamName,
         leader: userId,
-        teammate: teammateId
+        teammate: teammateInput
       };
       saveTeams(teams);
 
+      const mentions = [userId];
+      let teammateDisplay = teammateInput;
+
+      if (teammateId) {
+        mentions.push(teammateId);
+        teammateDisplay = `<@${teammateId}>`;
+      }
+
       await interaction.reply({
-        content: `✅ Команда **${teamName}** с <@${userId}> и <@${teammateId}> зарегистрирована.`,
-        ephemeral: true
+        content: `✅ Команда **${teamName}** с <@${userId}> и ${teammateDisplay} зарегистрирована.`,
+        flags: 64,
+        allowedMentions: { users: mentions }
       });
 
       const targetChannel = await interaction.guild.channels.fetch('1388148020008189952');
