@@ -12,7 +12,7 @@ module.exports = {
       return interaction.reply({ content: '❌ иди нахуй', ephemeral: true });
     }
 
-    const targetChannel = interaction.client.channels.cache.get('1388148020008189952');
+    const targetChannel = interaction.client.channels.cache.get('1392578527290724475');
     if (!targetChannel) {
       return interaction.reply({ content: '❌ Канал не найден.', ephemeral: true });
     }

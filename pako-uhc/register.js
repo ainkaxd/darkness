@@ -1,31 +1,76 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { createUHCRegistrationMessage } = require('./ui');
+const { updateTeamListMessage } = require('../pako-uhc/ui');
+const { readTeams, saveTeams } = require('../pako-uhc/uhcStorage');
+
+const registrationChannelId = '1392578527290724475';
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('uhc-register')
-    .setDescription('Создаёт сообщение регистрации для турнира UHC'),
+    .setDescription('Регистрирует тебя и тиммейта в команду для Pako UHC')
+    .addUserOption(option =>
+      option.setName('teammate')
+        .setDescription('Выбери тиммейта')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('teamname')
+        .setDescription('Введите название команды')
+        .setRequired(true)
+    ),
 
   async execute(interaction) {
-    const allowedRoleName = interaction.guild.roles.cache.get('1165307052445409280'); // 👈 Роль, которой разрешено
-
+    const requiredRoleId = '1165307052445409280';
     const member = interaction.member;
-    const hasAccess = member.roles.cache.some(role =>
-      role.name.toLowerCase() === allowedRoleName.toLowerCase()
-    );
 
-    if (!hasAccess) {
+    if (!member.roles.cache.has(requiredRoleId)) {
       return interaction.reply({
         content: '❌ У вас нет доступа к этой команде.',
         ephemeral: true,
       });
     }
 
-    await interaction.deferReply({ ephemeral: true });
+    const userId = interaction.user.id;
+    const teammate = interaction.options.getUser('teammate');
+    const teamName = interaction.options.getString('teamname');
 
-    const channel = interaction.channel;
-    await createUHCRegistrationMessage(channel);
+    if (!teammate || teammate.bot) {
+      return interaction.reply({
+        content: '❌ Указан недопустимый тиммейт',
+        ephemeral: true,
+      });
+    }
 
-    await interaction.editReply('🟢 Сообщение регистрации отправлено!');
-  },
+    const teams = readTeams();
+
+    const alreadyRegistered = Object.values(teams).some(team =>
+      team.leader === userId || team.teammate === userId ||
+      team.leader === teammate.id || team.teammate === teammate.id
+    );
+
+    if (alreadyRegistered) {
+      return interaction.reply({
+        content: '❌ Ты или твой тиммейт уже зарегистрированы в другой команде.',
+        ephemeral: true,
+      });
+    }
+
+    const teamId = `${userId}-${teammate.id}`;
+    teams[teamId] = {
+      name: teamName,
+      leader: userId,
+      teammate: teammate.id
+    };
+
+   saveTeams(teams);
+
+
+    const channel = await interaction.guild.channels.fetch(registrationChannelId);
+    await updateTeamListMessage(channel);
+
+    return interaction.reply({
+      content: `✅ Команда **${teamName}** зарегистрирована: <@${userId}> + <@${teammate.id}>`,
+      ephemeral: true,
+    });
+  }
 };

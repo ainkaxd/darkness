@@ -14,10 +14,10 @@ function generateTeamList() {
 /** 📬 Создание или обновление embed-сообщения со списком команд */
 async function updateTeamListMessage(channel) {
   const embed = new EmbedBuilder()
-    .setTitle('🏆 Список команд на Pako UHC')
+    .setTitle('🏆 Список команд на Pako UHC 2!')
     .setDescription(generateTeamList())
     .setColor(0x00ff88)
-    .setFooter({ text: 'Крики короли камбека' });
+    .setFooter({ text: 'сверху сосали' });
 
   const messages = await channel.messages.fetch({ limit: 10 });
   const existing = messages.find(msg =>
