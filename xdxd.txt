@@ -1,4 +1,11 @@
 для обновлений 
  git add .
- git commit -m ""
+ git commit -m "asd"
  git push
+
+
+
+
+
+
+

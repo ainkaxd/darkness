@@ -16,11 +16,29 @@ const client = new Client({
 // 📦 Коллекции команд
 client.commands = new Collection();
 
-// 📥 Загружаем слэш-команды
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+// 📥 Рекурсивная загрузка слэш-команд
+function getAllCommandFiles(dirPath, arrayOfFiles = []) {
+  const files = fs.readdirSync(dirPath);
+  for (const file of files) {
+    const fullPath = path.join(dirPath, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      getAllCommandFiles(fullPath, arrayOfFiles);
+    } else if (file.endsWith('.js')) {
+      arrayOfFiles.push(fullPath);
+    }
+  }
+  return arrayOfFiles;
+}
+
+const commandFiles = getAllCommandFiles(path.join(__dirname, 'commands'));
+
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
+  const command = require(file);
+  if ('data' in command && 'execute' in command) {
+    client.commands.set(command.data.name, command);
+  } else {
+    console.warn(`[⚠️] Команда в файле ${file} не содержит data или execute`);
+  }
 }
 
 // 🔄 События
