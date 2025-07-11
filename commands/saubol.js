@@ -3,9 +3,8 @@ const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('saubol')
-    .setDescription('будь здоров'),
-
+    .setDescription('саубол джига))'),
   async execute(interaction) {
-    await interaction.reply('рахмет');
+    await interaction.reply('саубол!');
   },
 };
